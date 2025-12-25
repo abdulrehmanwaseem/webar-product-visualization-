@@ -261,38 +261,17 @@ export default function ARViewer({ item }: ARViewerProps) {
             alt={item.name}
             ar=""
             ar-modes="scene-viewer webxr quick-look"
-            ar-scale="auto"
-            ar-placement="floor"
             camera-controls=""
             touch-action="pan-y"
-            auto-rotate=""
-            auto-rotate-delay={3000}
-            interaction-prompt="auto"
             shadow-intensity="1"
-            shadow-softness="1"
-            exposure="1"
+            auto-rotate=""
+            environment-image="neutral"
             style={{
               width: "100%",
               height: "100%",
               backgroundColor: "#1a1a1a",
             }}
-          >
-            {/* Default AR button - let model-viewer handle styling */}
-            <button slot="ar-button" id="ar-button">
-              View in your space
-            </button>
-
-            {/* Progress bar slot */}
-            <div
-              slot="progress-bar"
-              className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800"
-            >
-              <div
-                className="h-full bg-blue-600 transition-all duration-300"
-                style={{ width: `${loadProgress}%` }}
-              />
-            </div>
-          </model-viewer>
+          />
         )}
 
         {/* Floating AR hint for mobile - shows briefly when loaded */}

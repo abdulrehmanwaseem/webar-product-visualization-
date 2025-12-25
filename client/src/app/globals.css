@@ -75,31 +75,8 @@ body {
   pointer-events: none;
 }
 
-/* AR button customization */
-#ar-button {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  background: white;
-  border-radius: 8px;
-  padding: 12px 16px;
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  z-index: 100;
-}
-
-#ar-button:active {
-  background: #e8e8e8;
-}
-
-/* Hide model-viewer's default AR button if we have custom one */
-model-viewer::part(default-ar-button) {
-  display: none;
-}
+/* AR button customization - use default model-viewer button */
+/* Model-viewer will automatically show AR button when available */
 
 /* Progress bar */
 model-viewer::part(default-progress-bar) {
