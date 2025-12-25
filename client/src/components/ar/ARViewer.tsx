@@ -72,6 +72,11 @@ export default function ARViewer({ item }: ARViewerProps) {
       usdzUrl: item.usdzUrl,
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "N/A",
     });
+
+    // Test if model URL is accessible
+    fetch(item.modelUrl, { method: "HEAD" })
+      .then((res) => console.log("Model URL accessible:", res.ok, res.status))
+      .catch((err) => console.error("Model URL fetch error:", err));
   }, [
     isIOS,
     isAndroid,
@@ -146,12 +151,18 @@ export default function ARViewer({ item }: ARViewerProps) {
   const handleARStatus = useCallback((event: Event) => {
     const customEvent = event as CustomEvent<{ status: string }>;
     const status = customEvent.detail.status as ARStatus;
+    console.log("AR Status changed:", status);
     setArStatus(status);
 
     if (status === "session-started") {
       setShowInstructions(true);
-    } else if (status === "object-placed" || status === "failed") {
+    } else if (status === "object-placed") {
       setShowInstructions(false);
+    } else if (status === "failed") {
+      setShowInstructions(false);
+      setError(
+        "AR failed to start. Make sure your device supports AR and the model is accessible."
+      );
     }
   }, []);
 
@@ -248,8 +259,8 @@ export default function ARViewer({ item }: ARViewerProps) {
             ios-src={hasUsdzFile ? item.usdzUrl : undefined}
             poster={item.thumbnailUrl}
             alt={item.name}
-            ar={arEnabled ? "" : undefined}
-            ar-modes={arEnabled ? arModes : undefined}
+            ar=""
+            ar-modes="scene-viewer webxr quick-look"
             ar-scale="auto"
             ar-placement="floor"
             camera-controls=""
@@ -266,21 +277,9 @@ export default function ARViewer({ item }: ARViewerProps) {
               backgroundColor: "#1a1a1a",
             }}
           >
-            {/* AR button slot - Small icon button in bottom-right like model-viewer example */}
-            <button
-              slot="ar-button"
-              className="absolute bottom-4 right-4 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-30"
-              disabled={!arEnabled}
-              aria-label="View in AR"
-            >
-              {/* AR cube icon - same as model-viewer */}
-              <svg
-                className="w-6 h-6 text-gray-700"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.236L19.09 7.5 12 10.764 4.91 7.5 12 4.236zM4 9.146l7 3.5v6.708l-7-3.5V9.146zm9 10.208v-6.708l7-3.5v6.708l-7 3.5z" />
-              </svg>
+            {/* Default AR button - let model-viewer handle styling */}
+            <button slot="ar-button" id="ar-button">
+              View in your space
             </button>
 
             {/* Progress bar slot */}
