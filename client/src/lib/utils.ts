@@ -53,9 +53,9 @@ export async function checkARSupport(): Promise<{
   // Check WebXR
   if ("xr" in navigator) {
     try {
-      result.webxr = await (
-        navigator as Navigator & { xr: XRSystem }
-      ).xr.isSessionSupported("immersive-ar");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const xr = (navigator as any).xr;
+      result.webxr = await xr.isSessionSupported("immersive-ar");
     } catch {
       result.webxr = false;
     }
