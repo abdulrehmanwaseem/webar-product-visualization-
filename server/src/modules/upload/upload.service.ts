@@ -28,8 +28,8 @@ export class UploadService {
   private readonly bucketName: string;
   private readonly publicUrl: string;
 
-  private readonly MAX_GLB_SIZE = 15 * 1024 * 1024; // 15MB
-  private readonly MAX_USDZ_SIZE = 15 * 1024 * 1024; // 15MB
+  private readonly MAX_GLB_SIZE = 20 * 1024 * 1024; // 20MB
+  private readonly MAX_USDZ_SIZE = 20 * 1024 * 1024; // 20MB
   private readonly MAX_THUMBNAIL_SIZE = 2 * 1024 * 1024; // 2MB
 
   private readonly ALLOWED_CONTENT_TYPES: Record<string, string[]> = {

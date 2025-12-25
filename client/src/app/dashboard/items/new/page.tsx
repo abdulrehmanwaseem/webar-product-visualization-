@@ -37,8 +37,8 @@ export default function NewItemPage() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      setError("GLB file must be less than 15MB");
+    if (file.size > 20 * 1024 * 1024) {
+      setError("GLB file must be less than 20MB");
       return;
     }
 
@@ -58,8 +58,8 @@ export default function NewItemPage() {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      setError("USDZ file must be less than 15MB");
+    if (file.size > 20 * 1024 * 1024) {
+      setError("USDZ file must be less than 20MB");
       return;
     }
 
@@ -198,7 +198,7 @@ export default function NewItemPage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             3D Model (GLB) *{" "}
-            <span className="text-gray-500 font-normal">Max 15MB</span>
+            <span className="text-gray-500 font-normal">Max 20MB</span>
           </label>
           {glbFile ? (
             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
