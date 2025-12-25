@@ -34,31 +34,22 @@ export default function ARViewer({ item }: ARViewerProps) {
   const scanEventIdRef = useRef<string | null>(null);
   const startTimeRef = useRef<number>(Date.now());
 
-  // Determine AR configuration based on device and available assets
+  // Determine device type for analytics and messaging
   const isIOS = isIOSDevice();
   const isAndroid = isAndroidDevice();
   const isMobile = isIOS || isAndroid;
   const hasUsdzFile = !!item.usdzUrl;
 
-  // AR is available if: Android (always with GLB) OR iOS with USDZ
-  const arEnabled = isAndroid || (isIOS && hasUsdzFile);
-
-  // Build ar-modes string
-  const arModes = [
-    isAndroid ? "scene-viewer" : null,
-    isIOS && hasUsdzFile ? "quick-look" : null,
-    "webxr",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // Always enable AR - let model-viewer handle device capability checking
+  // It will show/hide the AR button automatically based on device support
 
   // Hide AR hint after 5 seconds
   useEffect(() => {
-    if (arEnabled && !isLoading) {
+    if (!isLoading) {
       const timer = setTimeout(() => setShowArHint(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [arEnabled, isLoading]);
+  }, [isLoading]);
 
   // Debug logging for AR support
   useEffect(() => {
@@ -66,8 +57,6 @@ export default function ARViewer({ item }: ARViewerProps) {
       isIOS,
       isAndroid,
       hasUsdzFile,
-      arEnabled,
-      arModes,
       modelUrl: item.modelUrl,
       usdzUrl: item.usdzUrl,
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "N/A",
@@ -77,15 +66,7 @@ export default function ARViewer({ item }: ARViewerProps) {
     fetch(item.modelUrl, { method: "HEAD" })
       .then((res) => console.log("Model URL accessible:", res.ok, res.status))
       .catch((err) => console.error("Model URL fetch error:", err));
-  }, [
-    isIOS,
-    isAndroid,
-    hasUsdzFile,
-    arEnabled,
-    arModes,
-    item.modelUrl,
-    item.usdzUrl,
-  ]);
+  }, [isIOS, isAndroid, hasUsdzFile, item.modelUrl, item.usdzUrl]);
 
   // Record scan on mount
   useEffect(() => {
@@ -243,20 +224,19 @@ export default function ARViewer({ item }: ARViewerProps) {
           </div>
         )}
 
-        {/* iOS AR not available message */}
-        {isIOS && !hasUsdzFile && !isLoading && (
-          <div className="absolute top-4 left-4 right-4 bg-yellow-500/90 text-black p-3 rounded-lg text-sm z-20">
-            <strong>AR not available on iOS.</strong> This item requires a USDZ
-            file for iOS AR. You can still view the 3D model below.
+        {/* AR Error message - shown when AR fails */}
+        {arStatus === "failed" && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 text-black p-4 rounded-2xl text-center shadow-lg z-20 animate-in fade-in duration-300">
+            AR is not supported on this device
           </div>
         )}
 
-        {/* Model Viewer */}
+        {/* Model Viewer - AR button always shown, model-viewer handles device support */}
         {modelViewerLoaded && (
           <model-viewer
             ref={modelViewerRef}
             src={item.modelUrl}
-            ios-src={hasUsdzFile ? item.usdzUrl : undefined}
+            ios-src={item.usdzUrl || undefined}
             poster={item.thumbnailUrl}
             alt={item.name}
             ar=""
@@ -275,15 +255,12 @@ export default function ARViewer({ item }: ARViewerProps) {
         )}
 
         {/* Floating AR hint for mobile - shows briefly when loaded */}
-        {!isLoading &&
-          arEnabled &&
-          arStatus === "not-presenting" &&
-          showArHint && (
-            <div className="absolute bottom-20 right-4 bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg z-20 flex items-center gap-2">
-              <span>View in AR</span>
-              <span className="animate-bounce">↓</span>
-            </div>
-          )}
+        {!isLoading && arStatus === "not-presenting" && showArHint && (
+          <div className="absolute bottom-20 right-4 bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg z-20 flex items-center gap-2">
+            <span>View in AR</span>
+            <span className="animate-bounce">↓</span>
+          </div>
+        )}
 
         {/* Desktop notice */}
         {!isMobile && !isLoading && (
