@@ -1,0 +1,76 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlanType {
+  FREE
+  BASIC
+  PRO
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String    @id @default(uuid())
+  fullName  String
+  email     String    @unique
+  password  String?
+  role      Role      @default(USER)
+  avatar    String?   @default("")
+  planType  PlanType  @default(FREE)
+  provider  String    @default("email")
+  googleId  String?   @unique
+  appleId   String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  items     Item[]
+
+  @@map("users")
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  merchantId  String
+  name        String
+  slug        String   @unique
+  description String?
+  modelUrl    String
+  usdzUrl     String?
+  thumbnailUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant   User        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  scanEvents ScanEvent[]
+
+  @@index([merchantId])
+  @@index([slug])
+  @@map("items")
+}
+
+model ScanEvent {
+  id         String   @id @default(uuid())
+  itemId     String
+  deviceType String
+  sessionId  String
+  duration   Int      @default(0)
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([sessionId])
+  @@map("scan_events")
+}
+
