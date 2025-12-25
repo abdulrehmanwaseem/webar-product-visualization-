@@ -28,10 +28,59 @@ export default function ARViewer({ item }: ARViewerProps) {
   const [arStatus, setArStatus] = useState<ARStatus>("not-presenting");
   const [showInstructions, setShowInstructions] = useState(false);
   const [modelViewerLoaded, setModelViewerLoaded] = useState(false);
+  const [showArHint, setShowArHint] = useState(true);
 
   const sessionIdRef = useRef<string>(generateSessionId());
   const scanEventIdRef = useRef<string | null>(null);
   const startTimeRef = useRef<number>(Date.now());
+
+  // Determine AR configuration based on device and available assets
+  const isIOS = isIOSDevice();
+  const isAndroid = isAndroidDevice();
+  const isMobile = isIOS || isAndroid;
+  const hasUsdzFile = !!item.usdzUrl;
+
+  // AR is available if: Android (always with GLB) OR iOS with USDZ
+  const arEnabled = isAndroid || (isIOS && hasUsdzFile);
+
+  // Build ar-modes string
+  const arModes = [
+    isAndroid ? "scene-viewer" : null,
+    isIOS && hasUsdzFile ? "quick-look" : null,
+    "webxr",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Hide AR hint after 5 seconds
+  useEffect(() => {
+    if (arEnabled && !isLoading) {
+      const timer = setTimeout(() => setShowArHint(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [arEnabled, isLoading]);
+
+  // Debug logging for AR support
+  useEffect(() => {
+    console.log("AR Debug Info:", {
+      isIOS,
+      isAndroid,
+      hasUsdzFile,
+      arEnabled,
+      arModes,
+      modelUrl: item.modelUrl,
+      usdzUrl: item.usdzUrl,
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "N/A",
+    });
+  }, [
+    isIOS,
+    isAndroid,
+    hasUsdzFile,
+    arEnabled,
+    arModes,
+    item.modelUrl,
+    item.usdzUrl,
+  ]);
 
   // Record scan on mount
   useEffect(() => {
@@ -130,23 +179,6 @@ export default function ARViewer({ item }: ARViewerProps) {
     handleARStatus,
   ]);
 
-  // Determine AR configuration based on device and available assets
-  const isIOS = isIOSDevice();
-  const isAndroid = isAndroidDevice();
-  const hasUsdzFile = !!item.usdzUrl;
-
-  // AR is available if: Android (always with GLB) OR iOS with USDZ
-  const arEnabled = isAndroid || (isIOS && hasUsdzFile);
-
-  // Build ar-modes string
-  const arModes = [
-    isAndroid ? "scene-viewer" : null,
-    isIOS && hasUsdzFile ? "quick-look" : null,
-    "webxr",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <>
       <Script
@@ -234,13 +266,21 @@ export default function ARViewer({ item }: ARViewerProps) {
               backgroundColor: "#1a1a1a",
             }}
           >
-            {/* AR button slot */}
+            {/* AR button slot - Small icon button in bottom-right like model-viewer example */}
             <button
               slot="ar-button"
-              className="absolute bottom-4 right-4 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold shadow-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute bottom-4 right-4 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-30"
               disabled={!arEnabled}
+              aria-label="View in AR"
             >
-              {arEnabled ? "View in AR" : "3D View Only"}
+              {/* AR cube icon - same as model-viewer */}
+              <svg
+                className="w-6 h-6 text-gray-700"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.236L19.09 7.5 12 10.764 4.91 7.5 12 4.236zM4 9.146l7 3.5v6.708l-7-3.5V9.146zm9 10.208v-6.708l7-3.5v6.708l-7 3.5z" />
+              </svg>
             </button>
 
             {/* Progress bar slot */}
@@ -254,6 +294,24 @@ export default function ARViewer({ item }: ARViewerProps) {
               />
             </div>
           </model-viewer>
+        )}
+
+        {/* Floating AR hint for mobile - shows briefly when loaded */}
+        {!isLoading &&
+          arEnabled &&
+          arStatus === "not-presenting" &&
+          showArHint && (
+            <div className="absolute bottom-20 right-4 bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg z-20 flex items-center gap-2">
+              <span>View in AR</span>
+              <span className="animate-bounce">↓</span>
+            </div>
+          )}
+
+        {/* Desktop notice */}
+        {!isMobile && !isLoading && (
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-blue-600/90 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg z-20 text-center max-w-xs">
+            📱 Open this page on your phone to experience AR
+          </div>
         )}
 
         {/* Item info overlay */}
